@@ -44,7 +44,7 @@ jobs:
       - name: Silent install, CLI smoke, uninstall, reinstall
         shell: pwsh
         run: |
-          $msi = Get-ChildItem installer/wix/bin/Release -Filter '*.msi' -Recurse | Select-Object -First 1
+          $msi = Get-ChildItem installer/wix/bin -Filter '*.msi' -Recurse | Select-Object -First 1
           if (-not $msi) { throw 'MSI output missing' }
           Start-Process msiexec.exe -ArgumentList @('/i', $msi.FullName, '/qn', '/norestart') -Wait -PassThru | ForEach-Object { if ($_.ExitCode -notin 0,3010) { throw "Install failed: $($_.ExitCode)" } }
           $cli = Join-Path $env:ProgramFiles 'Beta Calendars Studio\betacal.exe'
@@ -64,7 +64,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force artifacts/release | Out-Null
-          Copy-Item (Get-ChildItem installer/wix/bin/Release -Filter '*.msi' -Recurse | Select-Object -First 1).FullName artifacts/release/BetaCalendarsStudio-1.0.0-win-x64.msi
+          Copy-Item (Get-ChildItem installer/wix/bin -Filter '*.msi' -Recurse | Select-Object -First 1).FullName artifacts/release/BetaCalendarsStudio-1.0.0-win-x64.msi
           Compress-Archive -Path artifacts/publish/* -DestinationPath artifacts/release/BetaCalendarsStudio-1.0.0-win-x64.zip -Force
           Get-FileHash artifacts/release/BetaCalendarsStudio-1.0.0-win-x64.msi -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  BetaCalendarsStudio-1.0.0-win-x64.msi" } | Set-Content artifacts/release/SHA256SUMS.txt
       - name: Scan release files with Microsoft Defender
