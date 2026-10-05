@@ -8,12 +8,12 @@ permissions:
   contents: read
 jobs:
   core-and-cli:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
       - run: dotnet build BetaCalendars.sln -c Release
@@ -26,8 +26,8 @@ jobs:
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
       - run: dotnet build BetaCalendars.sln -c Release
@@ -67,7 +67,22 @@ jobs:
           Copy-Item (Get-ChildItem installer/wix/bin/Release -Filter '*.msi' -Recurse | Select-Object -First 1).FullName artifacts/release/BetaCalendarsStudio-1.0.0-win-x64.msi
           Compress-Archive -Path artifacts/publish/* -DestinationPath artifacts/release/BetaCalendarsStudio-1.0.0-win-x64.zip -Force
           Get-FileHash artifacts/release/BetaCalendarsStudio-1.0.0-win-x64.msi -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  BetaCalendarsStudio-1.0.0-win-x64.msi" } | Set-Content artifacts/release/SHA256SUMS.txt
-      - uses: actions/upload-artifact@v4
+      - name: Scan release files with Microsoft Defender
+        shell: pwsh
+        run: |
+          $scanner = Join-Path $env:ProgramFiles 'Windows Defender\MpCmdRun.exe'
+          if (-not (Test-Path $scanner)) { throw 'Microsoft Defender command-line scanner is unavailable.' }
+          New-Item -ItemType Directory -Force artifacts/verification | Out-Null
+          $scanOutput = & $scanner -Scan -ScanType 3 -File "$PWD\artifacts\release" 2>&1
+          $scanResult = $LASTEXITCODE
+          $scanOutput | Set-Content artifacts/verification/DefenderScan.txt
+          "ExitCode: $scanResult" | Add-Content artifacts/verification/DefenderScan.txt
+          if ($scanResult -ne 0) { throw "Microsoft Defender scan returned $scanResult." }
+      - uses: actions/upload-artifact@v6
         with:
           name: windows-release-assets
           path: artifacts/release/*
+      - uses: actions/upload-artifact@v6
+        with:
+          name: windows-verification
+          path: artifacts/verification/DefenderScan.txt

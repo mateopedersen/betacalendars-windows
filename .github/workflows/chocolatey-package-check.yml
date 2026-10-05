@@ -1,0 +1,41 @@
+name: Chocolatey package install check
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published GitHub release version to package and test
+        required: true
+        default: 1.0.0
+        type: string
+permissions:
+  contents: read
+jobs:
+  package-install:
+    runs-on: windows-2022
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build package from immutable release
+        shell: pwsh
+        run: |
+          ./packaging/chocolatey/prepare-package.ps1 -Version '${{ inputs.version }}' -OutputDirectory artifacts/chocolatey
+      - name: Install, uninstall, and reinstall the local package
+        shell: pwsh
+        run: |
+          $source = (Resolve-Path artifacts/chocolatey).Path
+          choco install betacalendars-studio --source="$source" --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Local Chocolatey install failed.' }
+          $cli = Join-Path $env:ProgramFiles 'Beta Calendars Studio\betacal.exe'
+          if (-not (Test-Path $cli)) { throw 'Local Chocolatey install did not install betacal.exe.' }
+          & $cli validate 2027
+          if ($LASTEXITCODE -ne 0) { throw 'CLI regression smoke failed after Chocolatey install.' }
+          choco uninstall betacalendars-studio --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Local Chocolatey uninstall failed.' }
+          if (Test-Path (Join-Path $env:ProgramFiles 'Beta Calendars Studio')) { throw 'Chocolatey uninstall left the MSI product installed.' }
+          choco install betacalendars-studio --source="$source" --yes --no-progress
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $cli)) { throw 'Local Chocolatey reinstall failed.' }
+      - uses: actions/upload-artifact@v6
+        with:
+          name: chocolatey-package-check
+          path: artifacts/chocolatey/*.nupkg

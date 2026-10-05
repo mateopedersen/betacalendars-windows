@@ -56,7 +56,9 @@ Install-ChocolateyPackage -PackageName `$packageName -FileType 'msi' -SilentArgs
     <docsUrl>https://github.com/$owner/$repository#readme</docsUrl>
     <licenseUrl>https://github.com/$owner/$repository/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Beta Calendars Studio is an offline-first Windows calendar engineering and printable-calendar utility. It includes a native desktop calendar, civil-date and ISO-week inspection, month and year geometry, blank calendar design, print layout, a command-line interface, and SVG, HTML, JSON, and CSV export. Gregorian calculations run locally without an account, telemetry, advertising, or calendar data uploads. Optional Beta Calendars resource links open only after the user chooses them.</description>
+    <description>Beta Calendars Studio is an offline-first Windows calendar engineering and printable-calendar utility. It includes a native desktop calendar, civil-date and ISO-week inspection, month and year geometry, blank calendar design, print layout, a command-line interface, and SVG, HTML, JSON, and CSV export. Gregorian calculations run locally without an account, telemetry, advertising, or calendar data uploads.
+
+Optional Resource Library links open only after the user selects them: [Monthly Calendar](https://www.betacalendars.com/monthly-calendar), [Blank Calendar](https://www.betacalendars.com/blank-calendar), and [Monthly Planner](https://www.betacalendars.com/monthly-planner).</description>
     <summary>Offline-first Windows calendar and civil-date utility.</summary>
     <releaseNotes>Initial release: calendar studio, civil-date engine, CLI, local exports, and silent MSI installer.</releaseNotes>
     <copyright>Copyright 2026 Beta Calendars</copyright>

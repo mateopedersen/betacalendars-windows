@@ -10,7 +10,7 @@
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="Beta Calendars Studio" />
     </StandardDirectory>
-    <StandardDirectory Id="ProgramMenuFolder">
+    <StandardDirectory Id="CommonProgramsFolder">
       <Directory Id="ApplicationProgramsFolder" Name="Beta Calendars Studio" />
     </StandardDirectory>
   </Package>
