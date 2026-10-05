@@ -17,6 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Build package from immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
           ./packaging/chocolatey/prepare-package.ps1 -Version '${{ inputs.version }}' -OutputDirectory artifacts/chocolatey

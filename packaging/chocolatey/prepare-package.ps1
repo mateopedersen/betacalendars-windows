@@ -12,7 +12,9 @@ $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $owner = 'mateopedersen'
 $repository = 'betacalendars-windows'
 $assetName = "BetaCalendarsStudio-$Version-win-x64.msi"
-$release = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repository/releases/tags/v$Version" -Headers @{ 'User-Agent' = 'BetaCalendars-Studio-Package-Builder' }
+$apiHeaders = @{ 'User-Agent' = 'BetaCalendars-Studio-Package-Builder'; Accept = 'application/vnd.github+json' }
+if ($env:GH_TOKEN) { $apiHeaders.Authorization = "Bearer $env:GH_TOKEN" }
+$release = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repository/releases/tags/v$Version" -Headers $apiHeaders
 $asset = @($release.assets | Where-Object { $_.name -eq $assetName })
 if ($asset.Count -ne 1) { throw "Expected one release asset named $assetName." }
 $checksumsUrl = "https://github.com/$owner/$repository/releases/download/v$Version/SHA256SUMS.txt"
