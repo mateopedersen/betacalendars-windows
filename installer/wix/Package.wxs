@@ -1,0 +1,29 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Beta Calendars Studio" Manufacturer="Beta Calendars Studio" Version="1.0.0" UpgradeCode="B3D7B69A-7D6A-4F3E-85D7-8119D8B226C2" Scope="perMachine" InstallerVersion="500">
+    <SummaryInformation Description="Offline-first calendar engineering utility" Manufacturer="Beta Calendars Studio" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Beta Calendars Studio is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Feature Id="MainFeature" Title="Beta Calendars Studio" Level="1">
+      <ComponentGroupRef Id="MainFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Beta Calendars Studio" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="Beta Calendars Studio" />
+    </StandardDirectory>
+  </Package>
+  <Fragment>
+    <ComponentGroup Id="MainFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PublishDir)**" />
+    </ComponentGroup>
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="StartMenuShortcut" Guid="8A6F9CD2-5CEB-4B21-9F40-6F6C19849B4E">
+        <Shortcut Id="StudioShortcut" Name="Beta Calendars Studio" Target="[INSTALLFOLDER]BetaCalendarsStudio.exe" WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKLM" Key="Software\BetaCalendars\Studio" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

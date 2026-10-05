@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF><EnableWindowsTargeting>true</EnableWindowsTargeting><AssemblyName>BetaCalendarsStudio</AssemblyName><RootNamespace>BetaCalendars.Desktop</RootNamespace></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../BetaCalendars.Core/BetaCalendars.Core.csproj" /></ItemGroup>
+</Project>
