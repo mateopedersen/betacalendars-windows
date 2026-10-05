@@ -46,7 +46,8 @@ jobs:
         run: |
           $msi = Get-ChildItem installer/wix/bin -Filter '*.msi' -Recurse | Select-Object -First 1
           if (-not $msi) { throw 'MSI output missing' }
-          Start-Process msiexec.exe -ArgumentList @('/i', $msi.FullName, '/qn', '/norestart') -Wait -PassThru | ForEach-Object { if ($_.ExitCode -notin 0,3010) { throw "Install failed: $($_.ExitCode)" } }
+          & msiexec.exe /i $msi.FullName /qn /norestart
+          if ($LASTEXITCODE -notin 0,3010) { throw "Install failed: $LASTEXITCODE" }
           $cli = Join-Path $env:ProgramFiles 'Beta Calendars Studio\betacal.exe'
           if (-not (Test-Path $cli)) { throw 'Installed CLI missing' }
           & $cli validate 2027
@@ -57,9 +58,11 @@ jobs:
           Start-Sleep -Seconds 5
           if ($app.HasExited) { throw "Desktop application exited during launch smoke test: $($app.ExitCode)" }
           Stop-Process -Id $app.Id -Force
-          Start-Process msiexec.exe -ArgumentList @('/x', $msi.FullName, '/qn', '/norestart') -Wait -PassThru | ForEach-Object { if ($_.ExitCode -notin 0,3010) { throw "Uninstall failed: $($_.ExitCode)" } }
+          & msiexec.exe /x $msi.FullName /qn /norestart
+          if ($LASTEXITCODE -notin 0,3010) { throw "Uninstall failed: $LASTEXITCODE" }
           if (Test-Path (Join-Path $env:ProgramFiles 'Beta Calendars Studio')) { throw 'Install directory still exists' }
-          Start-Process msiexec.exe -ArgumentList @('/i', $msi.FullName, '/qn', '/norestart') -Wait -PassThru | ForEach-Object { if ($_.ExitCode -notin 0,3010) { throw "Reinstall failed: $($_.ExitCode)" } }
+          & msiexec.exe /i $msi.FullName /qn /norestart
+          if ($LASTEXITCODE -notin 0,3010) { throw "Reinstall failed: $LASTEXITCODE" }
       - name: Package release assets
         shell: pwsh
         run: |
