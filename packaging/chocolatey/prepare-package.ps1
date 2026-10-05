@@ -8,6 +8,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $owner = 'mateopedersen'
 $repository = 'betacalendars-windows'
 $assetName = "BetaCalendarsStudio-$Version-win-x64.msi"
