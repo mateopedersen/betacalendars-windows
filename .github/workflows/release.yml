@@ -28,8 +28,9 @@ jobs:
         run: |
           $msi = Get-ChildItem installer/wix/bin -Filter '*.msi' -Recurse | Select-Object -First 1
           if (-not $msi) { throw 'MSI output missing' }
-          & msiexec.exe /i $msi.FullName /qn /norestart
-          if ($LASTEXITCODE -notin 0,3010) { throw "Install failed: $LASTEXITCODE" }
+          $installLog = Join-Path $env:RUNNER_TEMP 'msi-install.log'
+          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/i `"$($msi.FullName)`" /qn /norestart /l*v `"$installLog`"" -Wait -PassThru
+          if ($install.ExitCode -notin 0,3010) { Get-Content $installLog -Tail 60; throw "Install failed: $($install.ExitCode)" }
           $cli = Join-Path $env:ProgramFiles 'Beta Calendars Studio\betacal.exe'
           if (-not (Test-Path $cli)) { throw 'Installed CLI missing' }
           & $cli validate 2027
@@ -40,11 +41,13 @@ jobs:
           Start-Sleep -Seconds 5
           if ($app.HasExited) { throw "Desktop application exited during launch smoke test: $($app.ExitCode)" }
           Stop-Process -Id $app.Id -Force
-          & msiexec.exe /x $msi.FullName /qn /norestart
-          if ($LASTEXITCODE -notin 0,3010) { throw "Uninstall failed: $LASTEXITCODE" }
+          $uninstallLog = Join-Path $env:RUNNER_TEMP 'msi-uninstall.log'
+          $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/x `"$($msi.FullName)`" /qn /norestart /l*v `"$uninstallLog`"" -Wait -PassThru
+          if ($uninstall.ExitCode -notin 0,3010) { Get-Content $uninstallLog -Tail 60; throw "Uninstall failed: $($uninstall.ExitCode)" }
           if (Test-Path (Join-Path $env:ProgramFiles 'Beta Calendars Studio')) { throw 'Install directory still exists' }
-          & msiexec.exe /i $msi.FullName /qn /norestart
-          if ($LASTEXITCODE -notin 0,3010) { throw "Reinstall failed: $LASTEXITCODE" }
+          $reinstallLog = Join-Path $env:RUNNER_TEMP 'msi-reinstall.log'
+          $reinstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/i `"$($msi.FullName)`" /qn /norestart /l*v `"$reinstallLog`"" -Wait -PassThru
+          if ($reinstall.ExitCode -notin 0,3010) { Get-Content $reinstallLog -Tail 60; throw "Reinstall failed: $($reinstall.ExitCode)" }
       - name: Create immutable release assets
         shell: pwsh
         run: |
