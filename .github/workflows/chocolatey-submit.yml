@@ -1,0 +1,38 @@
+name: Submit Chocolatey package
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published GitHub release version to submit
+        required: true
+        default: 1.0.0
+        type: string
+permissions:
+  contents: read
+jobs:
+  submit:
+    runs-on: windows-2022
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      GH_TOKEN: ${{ github.token }}
+      CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      PACKAGE_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build package from the public release
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CHOCOLATEY_API_KEY)) { throw 'Add CHOCOLATEY_API_KEY as a repository Actions secret before running this workflow.' }
+          ./packaging/chocolatey/prepare-package.ps1 -Version $env:PACKAGE_VERSION -OutputDirectory artifacts/chocolatey
+      - uses: actions/upload-artifact@v6
+        with:
+          name: chocolatey-submission-package
+          path: artifacts/chocolatey/*.nupkg
+      - name: Push package to Chocolatey Community Repository moderation
+        shell: pwsh
+        run: |
+          $expectedName = "betacalendars-studio.$($env:PACKAGE_VERSION).nupkg"
+          $package = Get-ChildItem artifacts/chocolatey -Filter $expectedName | Select-Object -First 1
+          if (-not $package) { throw 'Expected Chocolatey package was not created.' }
+          choco push $package.FullName --source https://push.chocolatey.org/ "--api-key=$env:CHOCOLATEY_API_KEY"
+          if ($LASTEXITCODE -ne 0) { throw "Chocolatey push failed with exit code $LASTEXITCODE." }
